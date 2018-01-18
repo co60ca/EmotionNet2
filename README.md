@@ -1,5 +1,11 @@
 # EmotionNet2
-Building on EmotionNet we improve generalization by improving the way we handle our input data
+Building on EmotionNet we improve generalization by improving the way we handle our input data.
+
+## What is EmotionNet?
+EmotionNet is an application of Convolutional Neural Networks to emotion recognition in photographs of human faces. EmotionNet2 does face detection in addition to classification to assist in reducing variance due to backgroud noise. See the original [EmotionNet](https://github.com/co60ca/EmotionNet). There is no web interface for this version as was present in the original version.
+
+# Support
+You should please note that no support is guaranteed and only best effort is provided. I will gladly accept reasonable patches and would like to hear if documentation/instructions are unclear. By no means are the instructions 100% foolproof but I expect you to be able to have some understanding of Python, and Linux environments.
 
 # Instructions
 1. Install requirements, including `requirements.txt`. Use `pip3 --requirement requirements.txt`. Additionally, you need pytorch gpu. 
