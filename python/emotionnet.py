@@ -258,7 +258,7 @@ class EmotionNet():
                 normalize,
             ])),
             batch_size=batch_size, shuffle=False, num_workers=num_workers,
-            pin_memory=True
+            pin_memory=torch.cuda.is_available()
         )
 
         loss, acc = self._valid_model(valid_loader)
@@ -317,7 +317,8 @@ class EmotionNet():
             criterion = criterion.cuda()
 
         for i, (input, target) in enumerate(valid_loader):
-            target = target.cuda(async=True)
+            if torch.cuda.is_available()
+                target = target.cuda(async=True)
             input_var = Variable(input, volatile=True)
             if torch.cuda.is_available():
                 input_var = input_var.cuda()
