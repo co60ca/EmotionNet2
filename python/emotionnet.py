@@ -114,7 +114,8 @@ class EmotionNet():
         block = resnet.BasicBlock
         num_classes = 7
         self.model = resnet.ResNet(block, layers, num_classes)
-        self.model.cuda()
+        if torch.cuda.is_available():
+            self.model.cuda()
         self.bestaccur = 0.0
 
     def save_checkpoint(self, is_best, filename='checkpoint.pth.tar'):
@@ -123,7 +124,10 @@ class EmotionNet():
             shutil.copyfile(filename, 'best-' + filename)
 
     def load_checkpoint(self, filename):
-        self.model.load_state_dict(torch.load(filename))
+        if torch.cuda.is_available():
+            self.model.load_state_dict(torch.load(filename))
+        else:
+            self.model.load_state_dict(torch.load(filename, lambda storage, loc: storage))
     def test_model_show(self, testdir, show=False):
         normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                          std=[0.229, 0.224, 0.225])
@@ -132,7 +136,9 @@ class EmotionNet():
             transforms.CenterCrop(224),
             transforms.ToTensor(),
         ]))
-        criterion = nn.CrossEntropyLoss().cuda()
+        criterion = nn.CrossEntropyLoss()
+        if torch.cuda.is_available():
+            criterion = criterion.cuda()
         # Test
         self.model.eval()
         losses = AverageMeter()
@@ -141,8 +147,11 @@ class EmotionNet():
             img = np.copy(input.numpy())
             target_out = torch.LongTensor(1, 1).zero_()
             target_out[0][0] = target
-            target_out = target_out.cuda(async=True)
-            input_var = Variable(normalize(input).view(1, *input.size()), volatile=True).cuda()
+            if torch.cuda.is_available():
+                target_out = target_out.cuda(async=True)
+            input_var = Variable(normalize(input).view(1, *input.size()), volatile=True)
+            if torch.cuda.is_available():
+                input_var = input_var.cuda()
 
             output = self.model(input_var)
             prec1 = accuracy(output.data, target_out, topk=(1,))
@@ -168,7 +177,7 @@ class EmotionNet():
                 normalize,
             ])),
             batch_size=batch_size, shuffle=True, num_workers=num_workers,
-            pin_memory=True
+            pin_memory=torch.cuda.is_available()
         )
 
         valid_loader = torch.utils.data.DataLoader(
@@ -179,10 +188,12 @@ class EmotionNet():
                 normalize,
             ])),
             batch_size=batch_size, shuffle=False, num_workers=num_workers,
-            pin_memory=True
+            pin_memory=torch.cuda.is_available()
         )
 
-        criterion = nn.CrossEntropyLoss().cuda()
+        criterion = nn.CrossEntropyLoss()
+        if torch.cuda.is_available():
+            criterion = criterion.cuda()
 
         optimizer = torch.optim.Adam(self.model.parameters())
         # CSV
@@ -196,8 +207,11 @@ class EmotionNet():
             top1 = AverageMeter()
             # Train
             for i, (input, target) in enumerate(train_loader):
-                target = target.cuda(async=True)
-                input_var = Variable(input).cuda()
+                if torch.cuda.is_available():
+                    target = target.cuda(async=True)
+                    input_var = Variable(input).cuda()
+                else:
+                    input_var = Variable(input)
                 target_var = Variable(target)
                 output = self.model(input_var)
 
@@ -274,8 +288,13 @@ class EmotionNet():
             args['o'] = tempdir
             face_detector.transform(extract_faces.AttributeDict(args), [imgf])
             cropped = Image.open(tempdir + '/' + os.path.basename(imgf))
-        cropped = transf(cropped)        
-        input_var = Variable(cropped.view(1, *cropped.shape)).cuda()
+        cropped = transf(cropped)
+        
+        input_var = Variable(cropped.view(1, *cropped.shape))
+
+        if torch.cuda.is_available():
+            input_var = input_var.cuda()
+
         output = self.model.forward(input_var).cpu().data.numpy()
         softmax = np.exp(output) / np.sum(np.exp(output))
         clss = np.argmax(softmax)
@@ -292,10 +311,16 @@ class EmotionNet():
         losses = AverageMeter()
         top1 = AverageMeter()
         confusion = Confusion(valid_loader)
-        criterion = nn.CrossEntropyLoss().cuda()
+        criterion = nn.CrossEntropyLoss()
+
+        if torch.cuda.is_available():
+            criterion = criterion.cuda()
+
         for i, (input, target) in enumerate(valid_loader):
             target = target.cuda(async=True)
-            input_var = Variable(input, volatile=True).cuda()
+            input_var = Variable(input, volatile=True)
+            if torch.cuda.is_available():
+                input_var = input_var.cuda()
             target_var = Variable(target, volatile=True)
 
             output = self.model(input_var)
