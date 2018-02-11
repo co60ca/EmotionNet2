@@ -317,7 +317,7 @@ class EmotionNet():
             criterion = criterion.cuda()
 
         for i, (input, target) in enumerate(valid_loader):
-            if torch.cuda.is_available()
+            if torch.cuda.is_available():
                 target = target.cuda(async=True)
             input_var = Variable(input, volatile=True)
             if torch.cuda.is_available():
