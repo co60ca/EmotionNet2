@@ -12,7 +12,7 @@ You should please note that no support is guaranteed and only best effort is pro
 
 Follow either Pretrained or Train Yourself streams after completing the requirements.
 ## Pretrained
-2. Download the external checkpoint from [my server](http://data.co60.ca/checkpoint.pth.tar.gz) and place in the root directory. 
+2. Download the external checkpoint from [my server](http://data.co60.ca/ai/checkpoint.pth.tar.gz) and place in the root directory. 
 3. Then, decompress using gzip, `gunzip checkpoint.pth.tar.gz` (removes .gz extension)
 4. Start python3 from the root directory with the `PYTHONPATH=python` as the python scripts are in the python directory.
 5. To try one image you can do the following:
